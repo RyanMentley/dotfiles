@@ -2,3 +2,4 @@
 
 alias ts="tig status"
 alias gc="git commit"
+alias gcane="git commit --amend --no-edit"
