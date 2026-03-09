@@ -1,8 +1,10 @@
 # Common to both zsh and bash
 
 export PATH="$HOME/.local/bin:$PATH"
-export EDITOR="code -w"
 
+[ -x "$(command -v code)" ] && export EDITOR="code -w"
+
+# Mac stuff
 if [[ "$(uname)" == "Darwin" ]]; then
     [ -s "/Applications/Android Studio.app/Contents/jbr/Contents/Home" ] && export JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home"
 fi
