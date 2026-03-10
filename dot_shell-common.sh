@@ -1,6 +1,7 @@
 # Common to both zsh and bash
 
-export PATH="$HOME/.local/bin:$PATH"
+[ -s "$HOME/.local/bin" ] && export PATH="$HOME/.local/bin:$PATH"
+[ -s "$HOME/Library/Android/sdk" ] && export PATH="$HOME/Library/Android/sdk:$PATH"
 
 [ -x "$(command -v code)" ] && export EDITOR="code -w"
 
