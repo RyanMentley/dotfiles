@@ -1,7 +1,16 @@
 # Common to both zsh and bash
 
-[ -s "$HOME/.local/bin" ] && export PATH="$HOME/.local/bin:$PATH"
-[ -s "$HOME/Library/Android/sdk" ] && export PATH="$HOME/Library/Android/sdk:$PATH"
+# Add a directory to $PATH if it exists
+add_to_path_end() {
+    [ -d "$1" ] && export PATH="$PATH:$1"
+}
+add_to_path_start() {
+    [ -d "$1" ] && export PATH="$1:$PATH"
+}
+
+add_to_path_end "$HOME/.local/bin"
+add_to_path_end "$HOME/Library/Android/sdk/platform-tools"
+add_to_path_end "$HOME/Library/Android/sdk/cmdline-tools/latest/bin"
 
 [ -x "$(command -v code)" ] && export EDITOR="code -w"
 
