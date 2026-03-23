@@ -19,10 +19,10 @@ add_to_path_start() {
 if [[ "$(uname)" == "Darwin" ]]; then
     # Mac
     [ -s "/Applications/Android Studio.app/Contents/jbr/Contents/Home" ] && export JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home"
-    export ANDROID_HOME="$HOME/Library/Android/sdk/"
+    export ANDROID_HOME="$HOME/Library/Android/sdk"
 else
     # Linux
-    export ANDROID_HOME="$HOME/Library/Android/sdk/"
+    export ANDROID_HOME="$HOME/Android/Sdk"
 fi
 
 
