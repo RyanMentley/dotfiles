@@ -32,6 +32,7 @@ fi
 add_to_path_end "$HOME/.local/bin"
 add_to_path_end "$ANDROID_HOME/platform-tools"
 add_to_path_end "$ANDROID_HOME/cmdline-tools/latest/bin"
+add_to_path_end "$HOME/bin"
 
 [ -x "$(command -v code)" ] && export EDITOR="code -w"
 
