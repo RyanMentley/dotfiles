@@ -1,4 +1,6 @@
 {{ $email := promptStringOnce . "email" "What is your email address?" -}}
+{{ $hasBeyondCompare := promptBoolOnce . "hasBeyondCompare" "Does this machine have Beyond Compare installed?" -}}
 
 [data]
   email = {{ $email | quote }}
+  hasBeyondCompare = {{ $hasBeyondCompare }}
