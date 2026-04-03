@@ -14,3 +14,52 @@
 {{- end}}
 [color]
 	ui = auto
+[alias]
+    discard = "!f() { \
+        force=0; \
+        add_all=0; \
+        while [ $# -gt 0 ]; do \
+            case \"$1\" in \
+                -f|--force) force=1 ;; \
+                -a|--all) add_all=1 ;; \
+                -h|--help) echo 'usage: git discard [-f|--force] [-a|--all]' >&2; return 0 ;; \
+                *) echo \"git discard: unknown option: $1\" >&2; echo 'usage: git discard [-f|--force] [-a|--all]' >&2; return 2 ;; \
+            esac; \
+            shift; \
+        done; \
+        branch_ref=$(git symbolic-ref -q HEAD) || { \
+            echo 'git discard: HEAD is detached; aborting' >&2; \
+            return 1; \
+        }; \
+        if git rev-parse --verify HEAD >/dev/null 2>&1; then \
+            had_head=1; \
+            against=HEAD; \
+        else \
+            had_head=0; \
+            against=$(git hash-object -t tree --stdin </dev/null); \
+        fi; \
+        if [ \"$force\" -ne 1 ] && ! git diff --cached --quiet \"$against\" --; then \
+            echo 'git discard: staged changes already exist; use -f or --force to include them' >&2; \
+            return 1; \
+        fi; \
+        if [ \"$add_all\" -eq 1 ]; then \
+            git add -A || return $?; \
+        else \
+            git add -u || return $?; \
+        fi; \
+        if git diff --cached --quiet \"$against\" --; then \
+            echo 'git discard: nothing to discard' >&2; \
+            return 1; \
+        fi; \
+        msg=\"git discard: $(date '+%Y-%m-%d %H:%M:%S %z')\"; \
+        git commit -m \"$msg\" || return $?; \
+        discarded_commit=$(git rev-parse --verify HEAD) || return $?; \
+        if [ \"$had_head\" -eq 1 ]; then \
+            git reset --hard HEAD^ || return $?; \
+        else \
+            git update-ref -d \"$branch_ref\" \"$discarded_commit\" || return $?; \
+            git rm -r --cached -q . >/dev/null 2>&1 || true; \
+            git clean -fd >/dev/null 2>&1 || return $?; \
+        fi; \
+        echo \"git discard: saved as $discarded_commit in the reflog\" >&2; \
+    }; f"
