@@ -1,7 +1,5 @@
 source ~/.shell-common.sh
 
-if [ -f ~/.iterm2_shell_integration.zsh ]; then source ~/.iterm2_shell_integration.zsh
-
 # ==================
 #  Begin z4h config
 # ==================
@@ -87,6 +85,9 @@ fi
 # ================
 #  End z4h config
 # ================
+
+# This needs to be after the z4h setup, or they will conflict (results in a warning from z4h)
+if [ -f ~/.iterm2_shell_integration.zsh ]; then source ~/.iterm2_shell_integration.zsh; fi
 
 # --- Google Cloud SDK - note that there is a parallel set in .bashrc ---
 # The next line updates PATH for the Google Cloud SDK.
