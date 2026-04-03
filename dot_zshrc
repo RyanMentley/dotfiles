@@ -1,5 +1,7 @@
 source ~/.shell-common.sh
 
+if [ -f ~/.iterm2_shell_integration.zsh ]; then source ~/.iterm2_shell_integration.zsh
+
 # ==================
 #  Begin z4h config
 # ==================
