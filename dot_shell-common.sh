@@ -25,6 +25,12 @@ else
     export ANDROID_HOME="$HOME/Android/Sdk"
 fi
 
+# =======
+#  Pyenv
+# =======
+export PYENV_ROOT="$HOME/.pyenv"
+[[ -d $PYENV_ROOT/bin ]] && export PATH="$PYENV_ROOT/bin:$PATH"
+# The eval pyenv init line is in the shell-specific rc file, as it differs by shell
 
 # ============
 #  PATH setup
