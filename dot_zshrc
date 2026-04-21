@@ -11,6 +11,15 @@ if type z4h > /dev/null; then
     #
     # Documentation: https://github.com/romkatv/zsh4humans/blob/v5/README.md.
 
+    # z4h reads these variables from its built-in precmd title hook.
+    # Keep them as plain strings and escape '%' at expansion time below so
+    # branch names like "release%2" don't get parsed as prompt escapes.
+    typeset -g _ryan_tab_title_local="${(%):-%~}"
+    typeset -g _ryan_tab_title_ssh="${(%):-%n@%m: %~}"
+
+    zstyle ':z4h:term-title:local' precmd '${_ryan_tab_title_local//\%/%%}'
+    zstyle ':z4h:term-title:ssh'   precmd '${_ryan_tab_title_ssh//\%/%%}'
+
     # Periodic auto-update on Zsh startup: 'ask' or 'no'.
     # You can manually run `z4h update` to update everything.
     zstyle ':z4h:' auto-update      'no'
@@ -57,6 +66,78 @@ if type z4h > /dev/null; then
     # is fully initialized. Everything that requires user interaction or can
     # perform network I/O must be done above. Everything else is best done below.
     z4h init || return
+
+    typeset -gi _ryan_tab_title_gitstatus_ready=0
+
+    # z4h sets Z4H_SSH when its SSH teleportation support is in play. Falling
+    # back to %m keeps the host portion sensible in normal SSH sessions too.
+    function _ryan_tab_title_ssh_host() {
+        print -r -- "${${Z4H_SSH##*:}:-${(%):-%m}}"
+    }
+
+    function _ryan_tab_title_local_fallback() {
+        print -r -- "${(%):-%~}"
+    }
+
+    function _ryan_tab_title_ssh_fallback() {
+        local ssh_host ssh_user ssh_path
+        ssh_host="$(_ryan_tab_title_ssh_host)"
+        ssh_user="${(%):-%n}"
+        ssh_path="${(%):-%~}"
+        print -r -- "${ssh_user}@${ssh_host}: ${ssh_path}"
+    }
+
+    function _ryan_update_tab_title() {
+        emulate -L zsh -o no_aliases
+
+        local timeout="${1:-0.05}"
+        local local_fallback ssh_fallback ssh_host repo_base branch repo_title
+
+        # Start from the non-repo title on every prompt. If gitstatus fails or
+        # times out, the title should degrade to the normal path view rather
+        # than keeping stale repo information from an earlier directory.
+        local_fallback="$(_ryan_tab_title_local_fallback)"
+        ssh_fallback="$(_ryan_tab_title_ssh_fallback)"
+        ssh_host="$(_ryan_tab_title_ssh_host)"
+
+        typeset -g _ryan_tab_title_local="$local_fallback"
+        typeset -g _ryan_tab_title_ssh="$ssh_fallback"
+
+        (( _ryan_tab_title_gitstatus_ready )) || return 0
+
+        gitstatus_query -d "$PWD" -p -t "$timeout" TABTITLE >/dev/null 2>&1 || return 0
+        [[ $VCS_STATUS_RESULT == ok-sync ]] || return 0
+
+        repo_base="${VCS_STATUS_WORKDIR:t}"
+        branch="${VCS_STATUS_LOCAL_BRANCH:-detached}"
+        repo_title="${repo_base}[${branch}]"
+
+        typeset -g _ryan_tab_title_local="$repo_title"
+        typeset -g _ryan_tab_title_ssh="${ssh_host}: ${repo_title}"
+    }
+
+    # p10k sources gitstatus under its own private function names. Load the
+    # public gitstatus API separately so this title logic is insulated from
+    # p10k internals.
+    if (( ! $+functions[gitstatus_start] )); then
+        typeset gitstatus_plugin=$Z4H/powerlevel10k/gitstatus/gitstatus.plugin.zsh
+        [[ -r $gitstatus_plugin ]] && source "$gitstatus_plugin"
+    fi
+
+    # Use a dedicated public gitstatus session for tab titles so this stays
+    # decoupled from p10k's private VCS cache layout.
+    if (( $+functions[gitstatus_start] )) &&
+       gitstatus_start -t 5 -s 0 -u 0 -c 0 -d 0 -m 0 TABTITLE >/dev/null 2>&1; then
+        _ryan_tab_title_gitstatus_ready=1
+    fi
+
+    # Run before z4h's own precmd title hook so the hook reads the freshly
+    # computed variables rather than the previous prompt's values.
+    precmd_functions=(_ryan_update_tab_title ${precmd_functions:#_ryan_update_tab_title})
+
+    # Use a longer one-time timeout so the first prompt can pick up repo state.
+    _ryan_update_tab_title 5
+    (( $+functions[-z4h-set-term-title-precmd] )) && -z4h-set-term-title-precmd
 
     # Define key bindings.
     z4h bindkey undo Ctrl+/   Shift+Tab  # undo the last command line change
