@@ -14,6 +14,12 @@
 {{- end}}
 [color]
 	ui = auto
+{{ if eq .chezmoi.os "darwin" }}
+# On macOS, this avoids phantom "local changes" when rebasing
+# See https://stackoverflow.com/a/5255710
+[core]
+	trustctime = false
+{{end}}
 [alias]
     discard = "!f() { \
         force=0; \
