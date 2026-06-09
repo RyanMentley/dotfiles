@@ -105,6 +105,7 @@ add_to_path_end "$HOME/.local/bin"
 # Set up Android tooling on the PATH
 if [ -d "$ANDROID_HOME" ]; then
     add_to_path_end "$ANDROID_HOME/platform-tools"
+    add_to_path_end "$ANDROID_HOME/emulator"
     add_to_path_end "$ANDROID_HOME/cmdline-tools/latest/bin"
     add_latest_to_path_end "$ANDROID_HOME/build-tools" "*"
 fi
